@@ -1,0 +1,57 @@
+//go get -u github.com/go-redis/redis/v8
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"time"
+
+	"github.com/go-redis/redis/v8"
+)
+
+func main() {
+	// Подключение к Redis
+	client := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379", // адрес Redis-сервера
+		Password: "",                // пароль (если установлен)
+		DB:       0,                 // номер базы данных
+	})
+
+	defer client.Close()
+
+	// Пример работы с кешем
+	key := "example_key"
+	value, err := client.Get(context.Background(), key).Result()
+	if err == redis.Nil {
+		// Ключ не найден в кеше, проведем вычисление и сохраним результат
+		result := "some calculation result"
+		err := client.Set(context.Background(), key, result, 10*time.Second).Err()
+		if err != nil {
+			log.Fatal(err)
+		}
+		value = result
+		fmt.Println("Calculated value:", value)
+	} else if err != nil {
+		// Обработка ошибок при получении данных из кеша
+		log.Fatal(err)
+	} else {
+		// Ключ найден в кеше
+		fmt.Println("Value from cache:", value)
+	}
+
+	// Засечем время выполнения запроса
+	startTime := time.Now()
+
+	// Пример выполнения нескольких запросов для демонстрации высокой скорости работы с кеш-памятью
+	for i := 0; i < 100000; i++ {
+		_, err := client.Get(context.Background(), key).Result()
+		if err != nil && err != redis.Nil {
+			log.Fatal(err)
+		}
+	}
+
+	// Выведем время выполнения
+	elapsed := time.Since(startTime)
+	fmt.Printf("Elapsed time for 100,000 cache lookups: %s\n", elapsed)
+}

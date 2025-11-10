@@ -1,0 +1,23 @@
+protoc --go_out=. --go-grpc_out=. color.proto
+
+# Установка компилятора Protocol Buffers
+sudo apt-get install -y protobuf-compiler
+
+# Установка gRPC-плагина для Golang
+go get -u google.golang.org/protobuf/cmd/protoc-gen-go
+go get -u google.golang.org/grpc/cmd/protoc-gen-go-grpc
+
+
+/your_project
+    /proto         # Папка для файлов protobuf
+        color.proto
+
+    /pb            # Сгенерированные файлы protobuf
+        color.pb.go
+        color_grpc.pb.go
+
+    /server        # Код сервера
+        server.go
+
+    /client        # Код клиента
+        client.go
